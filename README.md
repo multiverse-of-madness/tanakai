@@ -1318,7 +1318,7 @@ Tanakai.configure do |config|
   # config.chromedriver_path = "~/.local/bin/chromedriver"
 
   # Provide additional command line arguments that will passed to the browser
-  # config.additional_arguments = %w[--disable-gpu]
+  # config.browser_cmd_line_arguments = %w[--disable-gpu]
 end
 ```
 
