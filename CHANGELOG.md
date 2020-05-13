@@ -10,6 +10,11 @@
 * Add support to [Apparition](https://github.com/twalpole/apparition)
 * Add support to [Cuprite](https://github.com/rubycdp/cuprite)
 
+## 1.4.1
+New
+* Updated for Ruby 2.7+ support
+* Switched to Addressable.URI.escape from obsolete URI.escape
+
 ## 1.4.0
 ### New
 * Add `encoding` config option (see [All available config options](https://github.com/vifreefly/kimuraframework#all-available-config-options))
