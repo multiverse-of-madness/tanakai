@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.6.0
+### New
+* Updated for Ruby 2.7+ support
+* Switched to Addressable.URI.escape from obsolete URI.escape
+* Allow passing data to crawl!
+
 ## 1.5.1
 ### New
 * Add `response_type` to `in_parallel`
@@ -9,11 +15,6 @@
 * First release as Tanakai
 * Add support to [Apparition](https://github.com/twalpole/apparition)
 * Add support to [Cuprite](https://github.com/rubycdp/cuprite)
-
-## 1.4.1
-New
-* Updated for Ruby 2.7+ support
-* Switched to Addressable.URI.escape from obsolete URI.escape
 
 ## 1.4.0
 ### New
