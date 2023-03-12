@@ -4,11 +4,11 @@
 
 Tanakai intends to be a maintained fork of [Kimurai](https://github.com/vifreefly/kimuraframework), a modern web scraping framework written in Ruby which **works out of the box with Apparition, Cuprite, Headless Chromium/Firefox and PhantomJS**, or simple HTTP requests and **allows you to scrape and interact with JavaScript rendered websites.**
 
-### TODO:
+### Goals of this fork:
 
 - [x] add support to [Apparition](https://github.com/twalpole/apparition) and [Cuprite](https://github.com/rubycdp/cuprite)
-- [ ] add some tests with RSpec
-- [ ] add support to Ruby 3
+- [x] add support to Ruby 3
+- [ ] write tests with RSpec
 - [ ] improve configuration options for Apparition and Cuprite (both have been recently added)
 - [ ] create an awesome logo in the likes of [this](https://hsto.org/webt/_v/mt/tp/_vmttpbpzbt-y2aook642d9wpz0.png)
 - [ ] have you as new contributor
@@ -2048,6 +2048,11 @@ $ bundle exec tanakai runner --exclude github_spider
 
 You can perform custom actions before runner starts and after runner stops using `config.runner_at_start_callback` and `config.runner_at_stop_callback`. Check [config/application.rb](lib/tanakai/template/config/application.rb) to see example.
 
+## Testing
+To run tests:
+```bash
+bundle exec rspec
+```
 
 ## Chat Support and Feedback
 Submit an issue on GitHub and we'll try to address it in a timely manner.

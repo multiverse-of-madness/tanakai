@@ -30,7 +30,7 @@ module Tanakai::BrowserBuilder
         end
         # See all options here: https://seleniumhq.github.io/selenium/docs/api/rb/Selenium/WebDriver/Chrome/Options.html
         driver_options = Selenium::WebDriver::Chrome::Options.new(**opts)
-
+        
         if @config[:debugger_address]
           driver_options.add_option(:debuggerAddress, @config[:debugger_address])
         end

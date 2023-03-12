@@ -1,5 +1,6 @@
 require_relative 'base/saver'
 require_relative 'base/storage'
+require 'addressable/uri'
 
 module Tanakai
   class Base
@@ -207,9 +208,7 @@ module Tanakai
       visited = delay ? browser.visit(url, delay: delay) : browser.visit(url)
       return unless visited
 
-      options =  { url: url, data: data }
-
-      public_send(handler, browser.current_response(response_type), **options)
+      public_send(handler, browser.current_response(response_type), **{ url: url, data: data })
     end
 
     def console(response = nil, url: nil, data: {})
@@ -232,9 +231,9 @@ module Tanakai
       @savers[path] ||= begin
         options = { format: format, position: position, append: append }
         if self.with_info
-          self.class.savers[path] ||= Saver.new(path, options)
+          self.class.savers[path] ||= Saver.new(path, **options)
         else
-          Saver.new(path, options)
+          Saver.new(path, **options)
         end
       end
 
@@ -312,7 +311,7 @@ module Tanakai
           part.each do |url_data|
             if url_data.class == Hash
               if url_data[:url].present? && url_data[:data].present?
-                spider.request_to(handler, delay, **url_data)
+                spider.request_to(handler, delay, **{ **url_data, response_type: response_type })
               else
                 spider.public_send(handler, **url_data)
               end
