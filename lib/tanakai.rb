@@ -52,3 +52,15 @@ module Tanakai
     end
   end
 end
+
+class Dir
+  def self.exists?(name)
+    self.exist?(name)
+  end
+end
+
+class File
+  def self.exists?(name)
+    self.exist?(name)
+  end
+end
