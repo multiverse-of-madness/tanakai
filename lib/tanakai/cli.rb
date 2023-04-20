@@ -174,7 +174,7 @@ module Tanakai
     private
 
     def inside_project?
-      Dir.exist?("spiders") && File.exists?("./config/boot.rb")
+      Dir.exist?("spiders") && File.exist?("./config/boot.rb")
     end
   end
 end
