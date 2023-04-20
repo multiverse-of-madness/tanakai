@@ -2,7 +2,9 @@
 
 ## 1.6.0
 ### New
-* Add support to Ruby 3
+* Updated for Ruby 2.7+ support
+* Switched to Addressable.URI.escape from obsolete URI.escape
+* Allow passing data to crawl!
 
 ## 1.5.1
 ### New
