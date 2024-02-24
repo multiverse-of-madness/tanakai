@@ -1,5 +1,6 @@
 require_relative 'base/saver'
 require_relative 'base/storage'
+require 'uri'
 require 'addressable/uri'
 
 module Tanakai
