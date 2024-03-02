@@ -12,12 +12,12 @@ module Tanakai
 
     LoggerFormatter = proc do |severity, datetime, progname, msg|
       current_thread_id = Thread.current.object_id
-      thread_type = Thread.main == Thread.current ? "M" : "C"
-      output = "%s, [%s#%d] [%s: %s] %5s -- %s: %s\n"
-        .freeze % [severity[0..0], datetime, $$, thread_type, current_thread_id, severity, progname, msg]
+      thread_type = Thread.main == Thread.current ? 'M' : 'C'
+      output = format("%s, [%s#%d] [%s: %s] %5s -- %s: %s\n"
+               .freeze, severity[0..0], datetime, $$, thread_type, current_thread_id, severity, progname, msg)
 
-      if Tanakai.configuration.colorize_logger != false && Tanakai.env == "development"
-        Rbcat.colorize(output, predefined: [:jsonhash, :logger])
+      if Tanakai.configuration.colorize_logger != false && Tanakai.env == 'development'
+        Rbcat.colorize(output, predefined: %i[jsonhash logger])
       else
         output
       end
@@ -53,11 +53,13 @@ module Tanakai
 
     def self.update(type, subtype)
       return unless @run_info
+
       @update_mutex.synchronize { @run_info[type][subtype] += 1 }
     end
 
     def self.add_event(scope, event)
       return unless @run_info
+
       @update_mutex.synchronize { @run_info[:events][scope][event] += 1 }
     end
 
@@ -67,8 +69,8 @@ module Tanakai
     @pipelines = []
     @config = {}
 
-    def self.name
-      @name
+    class << self
+      attr_reader :name
     end
 
     def self.engine
@@ -79,8 +81,8 @@ module Tanakai
       @pipelines ||= superclass.pipelines
     end
 
-    def self.start_urls
-      @start_urls
+    class << self
+      attr_reader :start_urls
     end
 
     def self.config
@@ -95,7 +97,7 @@ module Tanakai
 
     def self.logger
       @logger ||= Tanakai.configuration.logger || begin
-        log_level = (ENV["LOG_LEVEL"] || Tanakai.configuration.log_level || "DEBUG").to_s.upcase
+        log_level = (ENV['LOG_LEVEL'] || Tanakai.configuration.log_level || 'DEBUG').to_s.upcase
         log_level = "Logger::#{log_level}".constantize
         Logger.new(STDOUT, formatter: LoggerFormatter, level: log_level, progname: name)
       end
@@ -118,13 +120,13 @@ module Tanakai
       ###
 
       logger.info "Spider: started: #{name}"
-      open_spider if self.respond_to? :open_spider
+      open_spider if respond_to? :open_spider
 
-      spider = self.new
+      spider = new
       spider.with_info = true
       if start_urls
         start_urls.each do |start_url|
-          if start_url.class == Hash
+          if start_url.instance_of?(Hash)
             spider.request_to(:parse, url: start_url[:url], data: data)
           else
             spider.request_to(:parse, url: start_url, data: data)
@@ -140,13 +142,13 @@ module Tanakai
       @run_info.merge!(status: :completed)
     ensure
       if spider
-        spider.browser.destroy_driver! if spider.instance_variable_get("@browser")
+        spider.browser.destroy_driver! if spider.instance_variable_get('@browser')
 
         stop_time  = Time.now
         total_time = (stop_time - @run_info[:start_time]).round(3)
         @run_info.merge!(stop_time: stop_time, running_time: total_time)
 
-        close_spider if self.respond_to? :close_spider
+        close_spider if respond_to? :close_spider
 
         message = "Spider: stopped: #{@run_info.merge(running_time: @run_info[:running_time]&.duration)}"
         failed? ? logger.fatal(message) : logger.info(message)
@@ -162,17 +164,17 @@ module Tanakai
       else
         config = {}
       end
-      spider = self.new config: config
+      spider = new config: config
 
       if args.present?
         spider.public_send(handler, *args)
       elsif request.present?
-        spider.request_to(handler, request)
+        spider.request_to(handler, url: request[:url], data: request[:data])
       else
         spider.public_send(handler)
       end
     ensure
-      spider.browser.destroy_driver! if spider.instance_variable_get("@browser")
+      spider.browser.destroy_driver! if spider.instance_variable_get('@browser')
     end
 
     ###
@@ -199,10 +201,10 @@ module Tanakai
     end
 
     def request_to(handler, delay = nil, url:, data: {}, response_type: :html)
-      raise InvalidUrlError, "Requested url is invalid: #{url}" unless URI.parse(url).kind_of?(URI::HTTP)
+      raise InvalidUrlError, "Requested url is invalid: #{url}" unless URI.parse(url).is_a?(URI::HTTP)
 
       if @config[:skip_duplicate_requests] && !unique_request?(url)
-        add_event(:duplicate_requests) if self.with_info
+        add_event(:duplicate_requests) if with_info
         logger.warn "Spider: request_to: not unique url: #{url}, skipped" and return
       end
 
@@ -219,9 +221,9 @@ module Tanakai
     ###
 
     def storage
-      # Note: for `.crawl!` uses shared thread safe Storage instance,
+      # NOTE: for `.crawl!` uses shared thread safe Storage instance,
       # otherwise, each spider instance will have it's own Storage
-      @storage ||= self.with_info ? self.class.storage : Storage.new
+      @storage ||= with_info ? self.class.storage : Storage.new
     end
 
     def unique?(scope, value)
@@ -231,7 +233,7 @@ module Tanakai
     def save_to(path, item, format:, position: true, append: false)
       @savers[path] ||= begin
         options = { format: format, position: position, append: append }
-        if self.with_info
+        if with_info
           self.class.savers[path] ||= Saver.new(path, **options)
         else
           Saver.new(path, **options)
@@ -244,9 +246,7 @@ module Tanakai
     ###
 
     def add_event(scope = :custom, event)
-      if self.with_info
-        self.class.add_event(scope, event)
-      end
+      self.class.add_event(scope, event) if with_info
 
       logger.info "Spider: new event (scope: #{scope}): #{event}" if scope == :custom
     end
@@ -261,7 +261,7 @@ module Tanakai
 
     def unique_request?(url)
       options = @config[:skip_duplicate_requests]
-      if options.class == Hash
+      if options.instance_of?(Hash)
         scope = options[:scope] || :requests_urls
         if options[:check_only]
           storage.include?(scope, url) ? false : true
@@ -275,21 +275,21 @@ module Tanakai
 
     def send_item(item, options = {})
       logger.debug "Pipeline: starting processing item through #{@pipelines.size} #{'pipeline'.pluralize(@pipelines.size)}..."
-      self.class.update(:items, :sent) if self.with_info
+      self.class.update(:items, :sent) if with_info
 
       @pipelines.each do |name, instance|
         item = options[name] ? instance.process_item(item, options: options[name]) : instance.process_item(item)
       end
-    rescue => e
+    rescue StandardError => e
       logger.error "Pipeline: dropped: #{e.inspect} (#{e.backtrace.first}), item: #{item}"
-      add_event(:drop_items_errors, e.inspect) if self.with_info
+      add_event(:drop_items_errors, e.inspect) if with_info
       false
     else
-      self.class.update(:items, :processed) if self.with_info
+      self.class.update(:items, :processed) if with_info
       logger.info "Pipeline: processed: #{JSON.generate(item)}"
       true
     ensure
-      if self.with_info
+      if with_info
         logger.info "Info: items: sent: #{self.class.items[:sent]}, processed: #{self.class.items[:processed]}"
       end
     end
@@ -307,10 +307,10 @@ module Tanakai
           Thread.current.abort_on_exception = true
 
           spider = self.class.new(engine, config: @config.deep_merge_excl(config, DMERGE_EXCLUDE))
-          spider.with_info = true if self.with_info
+          spider.with_info = true if with_info
 
           part.each do |url_data|
-            if url_data.class == Hash
+            if url_data.instance_of?(Hash)
               if url_data[:url].present? && url_data[:data].present?
                 spider.request_to(handler, delay, **{ **url_data, response_type: response_type })
               else
@@ -321,7 +321,7 @@ module Tanakai
             end
           end
         ensure
-          spider.browser.destroy_driver! if spider.instance_variable_get("@browser")
+          spider.browser.destroy_driver! if spider.instance_variable_get('@browser')
         end
 
         sleep 0.5
